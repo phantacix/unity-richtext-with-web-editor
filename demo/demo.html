@@ -3,17 +3,1095 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
+    <title>Unity 富文本编辑器 - 支持全部 35 个 Unity 标签的可视化编辑器</title>
+    <style>
+        /* ═══════════════════════════════════════════════════════════
+           演示页面样式 — 浅色主题
+           ═══════════════════════════════════════════════════════════ */
+        :root {
+            --base: #ffffff;
+            --mantle: #fafafa;
+            --crust: #f0f0f0;
+            --surface0: #e0e0e0;
+            --surface1: #d5d5d5;
+            --surface2: #bbb;
+            --text: #333;
+            --subtext0: #888;
+            --subtext1: #666;
+            --overlay0: #aaa;
+            --blue: #5b9bd5;
+            --lavender: #8ba4d9;
+            --sapphire: #4a8ac4;
+            --sky: #5ba8c8;
+            --teal: #5bb5a6;
+            --green: #6abf69;
+            --yellow: #d4a843;
+            --peach: #d4895a;
+            --maroon: #c77d88;
+            --red: #e05555;
+            --mauve: #a07bc7;
+            --pink: #c78db5;
+            --flamingo: #c49a9a;
+            --rosewater: #c4a8a3;
+        }
 
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--crust);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ── 头部 ── */
+        .demo-header {
+            background: var(--base);
+            border-bottom: 1px solid var(--surface0);
+            padding: 28px 24px;
+            text-align: center;
+        }
+        .demo-header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--blue);
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+        .demo-header h1 span {
+            color: var(--subtext1);
+            font-weight: 400;
+            font-size: 18px;
+        }
+        .demo-header .tagline {
+            font-size: 14px;
+            color: var(--overlay0);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .demo-header .badge-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .badge-blue { background: rgba(137,180,250,0.15); color: var(--blue); }
+        .badge-green { background: rgba(166,227,161,0.15); color: var(--green); }
+        .badge-mauve { background: rgba(203,166,247,0.15); color: var(--mauve); }
+        .badge-peach { background: rgba(250,179,135,0.15); color: var(--peach); }
+
+        /* ── 主布局 ── */
+        .demo-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        .editor-preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 860px) {
+            .editor-preview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── 面板 ── */
+        .panel {
+            background: var(--base);
+            border: 1px solid var(--surface0);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--mantle);
+            border-bottom: 1px solid var(--surface0);
+        }
+        .panel-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--subtext0);
+        }
+        .panel-hint {
+            font-size: 11px;
+            color: var(--overlay0);
+        }
+
+        /* ── 模式选择器 ── */
+        .mode-selector {
+            background: var(--base);
+            border: 1px solid var(--surface0);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        .mode-selector-header {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .mode-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .mode-desc {
+            font-size: 12px;
+            color: var(--overlay0);
+        }
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .mode-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            border: 1px solid var(--surface0);
+            border-radius: 6px;
+            background: var(--mantle);
+            color: var(--subtext0);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        .mode-btn:hover {
+            border-color: var(--blue);
+            background: var(--base);
+        }
+        .mode-btn.active {
+            border-color: var(--blue);
+            background: color-mix(in srgb, var(--blue) 8%, var(--base));
+            color: var(--text);
+        }
+        .mode-btn-icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        .mode-btn-text {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+        .mode-btn-text strong {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .mode-btn-text small {
+            font-size: 11px;
+            color: var(--overlay0);
+        }
+        .mode-btn.active .mode-btn-text small {
+            color: var(--blue);
+        }
+
+        /* ── 自定义标签选择器 ── */
+        .custom-picker {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--surface0);
+        }
+        .custom-picker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: var(--subtext0);
+        }
+        .custom-picker-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .custom-pick-action {
+            padding: 3px 10px;
+            border: 1px solid var(--surface0);
+            border-radius: 4px;
+            background: var(--mantle);
+            color: var(--subtext0);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.12s;
+            font-family: inherit;
+        }
+        .custom-pick-action:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+        .custom-pick-apply {
+            background: var(--blue);
+            color: #fff;
+            border-color: var(--blue);
+            font-weight: 600;
+        }
+        .custom-pick-apply:hover {
+            filter: brightness(0.9);
+        }
+        .custom-tag-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .custom-tag-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .custom-tag-item input[type="checkbox"] {
+            accent-color: var(--blue);
+            cursor: pointer;
+        }
+        .custom-tag-item label {
+            font-size: 12px;
+            color: var(--subtext1);
+            cursor: pointer;
+            font-family: 'SF Mono', 'Consolas', monospace;
+        }
+
+        /* 覆盖 textarea 样式，使其填满编辑器面板 */
+        .editor-panel textarea#myTextarea {
+            width: 100%;
+            min-height: 320px;
+            padding: 14px;
+            border: none;
+            border-radius: 0;
+            background: var(--base);
+            color: var(--text);
+            font-family: 'SF Mono', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            resize: vertical;
+            outline: none;
+            display: block;
+        }
+
+        /* 覆盖预览容器样式，使其填满预览面板 */
+        .preview-panel .rich-text-preview {
+            border: none !important;
+            border-radius: 0 !important;
+            min-height: 320px;
+            padding: 14px !important;
+            font-size: 14px;
+        }
+
+        /* ── 输出代码区域 ── */
+        .output-section {
+            margin-bottom: 32px;
+        }
+        .output-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: var(--base);
+            border: 1px solid var(--surface0);
+            border-radius: 6px;
+            color: var(--subtext0);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            margin-bottom: 8px;
+        }
+        .output-toggle-btn:hover {
+            background: var(--surface0);
+            color: var(--text);
+        }
+        .output-code {
+            display: none;
+            background: var(--base);
+            border: 1px solid var(--surface0);
+            border-radius: 8px;
+            padding: 14px;
+            font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 12px;
+            color: var(--subtext1);
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+        .output-code.visible {
+            display: block;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           标签参考区域
+           ═══════════════════════════════════════════════════════════ */
+        .tag-reference {
+            margin-top: 12px;
+        }
+        .ref-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .ref-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .ref-header h2 span {
+            color: var(--overlay0);
+            font-weight: 400;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+        .expand-all-btn {
+            padding: 5px 12px;
+            background: transparent;
+            border: 1px solid var(--surface1);
+            border-radius: 5px;
+            color: var(--subtext0);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .expand-all-btn:hover {
+            background: var(--surface0);
+            color: var(--text);
+        }
+
+        /* ── 分类分组 ── */
+        .tag-category {
+            background: var(--base);
+            border: 1px solid var(--surface0);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.12s;
+        }
+        .category-header:hover {
+            background: rgba(137, 180, 250, 0.04);
+        }
+        .category-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .category-icon {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .category-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .category-count {
+            font-size: 11px;
+            color: var(--overlay0);
+            background: var(--surface0);
+            padding: 1px 8px;
+            border-radius: 10px;
+        }
+        .category-chevron {
+            color: var(--overlay0);
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+        .tag-category.open .category-chevron {
+            transform: rotate(90deg);
+        }
+
+        .category-body {
+            display: none;
+            border-top: 1px solid var(--surface0);
+        }
+        .tag-category.open .category-body {
+            display: block;
+        }
+
+        /* ── 标签行 ── */
+        .tag-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            border-bottom: 1px solid rgba(49, 50, 68, 0.5);
+            transition: background 0.1s;
+        }
+        .tag-row:last-child {
+            border-bottom: none;
+        }
+        .tag-row:hover {
+            background: rgba(137, 180, 250, 0.03);
+        }
+
+        .tag-icon-cell {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            background: var(--surface0);
+            font-size: 13px;
+            color: var(--subtext1);
+            flex-shrink: 0;
+        }
+        .tag-name-cell {
+            min-width: 90px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--blue);
+            font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+        }
+        .tag-syntax-cell {
+            flex: 1;
+            font-size: 12px;
+            font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+            color: var(--subtext0);
+            word-break: break-all;
+        }
+        .tag-desc-cell {
+            font-size: 12px;
+            color: var(--overlay0);
+            min-width: 120px;
+        }
+        .try-btn {
+            padding: 4px 10px;
+            background: rgba(137, 180, 250, 0.1);
+            border: 1px solid rgba(137, 180, 250, 0.2);
+            border-radius: 4px;
+            color: var(--blue);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.12s;
+            flex-shrink: 0;
+        }
+        .try-btn:hover {
+            background: rgba(137, 180, 250, 0.2);
+            border-color: rgba(137, 180, 250, 0.4);
+        }
+        .try-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 响应式标签行布局 */
+        @media (max-width: 700px) {
+            .tag-row {
+                flex-wrap: wrap;
+                gap: 6px;
+                padding: 10px 12px;
+            }
+            .tag-desc-cell {
+                display: none;
+            }
+            .tag-syntax-cell {
+                flex-basis: 100%;
+                order: 5;
+                padding-left: 42px;
+            }
+        }
+
+        /* ── 分类图标颜色 ── */
+        .cat-basic .category-icon { background: rgba(137,180,250,0.15); color: var(--blue); }
+        .cat-transform .category-icon { background: rgba(203,166,247,0.15); color: var(--mauve); }
+        .cat-font .category-icon { background: rgba(166,227,161,0.15); color: var(--green); }
+        .cat-spacing .category-icon { background: rgba(250,179,135,0.15); color: var(--peach); }
+        .cat-color .category-icon { background: rgba(249,226,175,0.15); color: var(--yellow); }
+        .cat-links .category-icon { background: rgba(116,199,236,0.15); color: var(--sapphire); }
+        .cat-special .category-icon { background: rgba(243,139,168,0.15); color: var(--red); }
+
+        /* ── 页脚 ── */
+        .demo-footer {
+            text-align: center;
+            padding: 24px 16px;
+            color: var(--overlay0);
+            font-size: 12px;
+            border-top: 1px solid var(--surface0);
+            margin-top: 32px;
+        }
+        .demo-footer a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+        .demo-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── 滚动条 ── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--mantle); }
+        ::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--surface2); }
+    </style>
+</head>
 <body>
-    <form>
-        <textarea id="myTextarea"></textarea>
-        <div id="previewContainer"></div>
-    </form>
+
+    <!-- ═══════════ 头部 ═══════════ -->
+    <header class="demo-header">
+        <h1>Unity 富文本编辑器 <span>— 可视化编辑</span></h1>
+        <p class="tagline">
+            一款轻量级、零依赖的 Unity 富文本可视化编辑器。
+            支持实时预览，轻松编辑游戏内邮件、公告和 UI 文本。
+        </p>
+        <div class="badge-row">
+            <span class="badge badge-blue">35 个标签</span>
+            <span class="badge badge-green">实时预览</span>
+            <span class="badge badge-mauve">零依赖</span>
+            <span class="badge badge-peach">XSS 安全</span>
+        </div>
+    </header>
+
+    <!-- ═══════════ 主内容区 ═══════════ -->
+    <main class="demo-main">
+
+        <!-- 模式选择器 -->
+        <div class="mode-selector">
+            <div class="mode-selector-header">
+                <span class="mode-title">编辑模式</span>
+                <span class="mode-desc">选择工具栏中显示的标签。预览区始终渲染全部 35 个标签。</span>
+            </div>
+            <div class="mode-buttons">
+                <button type="button" class="mode-btn" data-mode="base" title="6 个基础标签：b, i, u, s, color, size">
+                    <span class="mode-btn-icon">✎</span>
+                    <span class="mode-btn-text">
+                        <strong>基础模式</strong>
+                        <small>6 个标签</small>
+                    </span>
+                </button>
+                <button type="button" class="mode-btn active" data-mode="advance" title="全部 35 个 Unity 富文本标签">
+                    <span class="mode-btn-icon">★</span>
+                    <span class="mode-btn-text">
+                        <strong>高级模式</strong>
+                        <small>35 个标签</small>
+                    </span>
+                </button>
+                <button type="button" class="mode-btn" data-mode="custom" title="自选标签组合">
+                    <span class="mode-btn-icon">⚙</span>
+                    <span class="mode-btn-text">
+                        <strong>自定义</strong>
+                        <small>自选标签</small>
+                    </span>
+                </button>
+            </div>
+            <!-- 自定义标签选择器（默认隐藏） -->
+            <div class="custom-picker" id="customPicker" style="display:none">
+                <div class="custom-picker-header">
+                    <span>为自定义模式选择标签：</span>
+                    <div class="custom-picker-actions">
+                        <button type="button" class="custom-pick-action" id="customSelectAll">全选</button>
+                        <button type="button" class="custom-pick-action" id="customSelectNone">清空</button>
+                        <button type="button" class="custom-pick-action custom-pick-apply" id="customApply">应用</button>
+                    </div>
+                </div>
+                <div class="custom-tag-grid" id="customTagGrid"></div>
+            </div>
+        </div>
+
+        <!-- 编辑器 + 预览 双栏网格 -->
+        <div class="editor-preview-grid">
+            <!-- 编辑器面板 -->
+            <div class="panel editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title">编辑器</span>
+                    <span class="panel-hint">支持 Ctrl+B/I/U 快捷键</span>
+                </div>
+                <form onsubmit="return false">
+                    <textarea id="myTextarea"><align="center"><size=28><b>Unity Rich Text Demo</b></size></align>
+
+Welcome to the <color=#5b9bd5>visual editor</color> for Unity rich text!
+
+<b>Bold text</b>, <i>italic text</i>, <u>underlined text</u>, and <s>strikethrough</s>.
+
+<size=20>Large text</size> and <size=10>small text</size> with <color=#FF5500>custom colors</color>.
+
+<mark=#FFFF0066>Highlighted text</mark> with transparency support.
+
+<allcaps>this text is all caps</allcaps> and <smallcaps>Small Caps Text</smallcaps>.
+
+H<sub>2</sub>O and E=mc<sup>2</sup> — subscript and superscript.
+
+<indent=15%>This paragraph is indented from the left margin.</indent>
+
+<color=#4caf50>Green</color>, <color=#e05555>Red</color>, <color=#9c27b0>Purple</color> — pick any color!
+
+<link="item_shop">Click here to visit the shop</link>
+
+Use the toolbar above to apply any of the 35 Unity rich text tags.</textarea>
+                </form>
+            </div>
+
+            <!-- 预览面板 -->
+            <div class="panel preview-panel">
+                <div class="panel-header">
+                    <span class="panel-title">实时预览</span>
+                    <span class="panel-hint">随输入实时更新</span>
+                </div>
+                <div id="previewContainer"></div>
+            </div>
+        </div>
+
+        <!-- 原始标记切换 -->
+        <div class="output-section">
+            <button class="output-toggle-btn" onclick="toggleOutput()">
+                <span id="outputArrow">&#9654;</span> 显示原始 Unity 标记
+            </button>
+            <div id="outputCode" class="output-code"></div>
+        </div>
+
+        <!-- ═══════════ 标签参考区域 ═══════════ -->
+        <section class="tag-reference">
+            <div class="ref-header">
+                <h2>标签参考 <span>全部 35 个 Unity 富文本标签</span></h2>
+                <button class="expand-all-btn" id="expandAllBtn" onclick="toggleAllCategories()">全部展开</button>
+            </div>
+
+            <div id="tagCategories"></div>
+        </section>
+    </main>
+
+    <!-- ═══════════ 页脚 ═══════════ -->
+    <footer class="demo-footer">
+        <p>HTML-Unity-RichText &mdash; 基于 MIT 许可证开源</p>
+        <p style="margin-top:4px">
+            <a href="https://github.com/starflying/html-unity-richtext" target="_blank">GitHub</a> &middot;
+            纯 JS 实现，零依赖
+        </p>
+    </footer>
+
+    <!-- ═══════════ 编辑器脚本 ═══════════ -->
+    <script src="../html.unity.richtext.js"></script>
+
+    <script>
+    // ──────────────────────────────────────────────
+    //  全部 35 个标签名称，用于自定义标签选择器
+    // ──────────────────────────────────────────────
+    const ALL_TAG_NAMES = [
+        'b', 'i', 'u', 's', 'allcaps', 'lowercase', 'uppercase', 'smallcaps',
+        'sub', 'sup', 'nobr', 'noparse', 'color', 'alpha', 'mark', 'font',
+        'font-weight', 'size', 'align', 'cspace', 'mspace', 'indent',
+        'line-height', 'line-indent', 'margin', 'voffset', 'width',
+        'gradient', 'style', 'a', 'link', 'sprite', 'br', 'space', 'pos'
+    ];
+
+    // ──────────────────────────────────────────────
+    //  构建自定义标签选择器的复选框列表
+    // ──────────────────────────────────────────────
+    const tagGrid = document.getElementById('customTagGrid');
+    ALL_TAG_NAMES.forEach(name => {
+        const item = document.createElement('div');
+        item.className = 'custom-tag-item';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.id = 'ct_' + name;
+        cb.value = name;
+        cb.checked = true;
+        const lbl = document.createElement('label');
+        lbl.htmlFor = 'ct_' + name;
+        lbl.textContent = name;
+        item.appendChild(cb);
+        item.appendChild(lbl);
+        tagGrid.appendChild(item);
+    });
+
+    document.getElementById('customSelectAll').addEventListener('click', () => {
+        tagGrid.querySelectorAll('input').forEach(cb => cb.checked = true);
+    });
+    document.getElementById('customSelectNone').addEventListener('click', () => {
+        tagGrid.querySelectorAll('input').forEach(cb => cb.checked = false);
+    });
+    document.getElementById('customApply').addEventListener('click', () => {
+        const selected = Array.from(tagGrid.querySelectorAll('input:checked')).map(cb => cb.value);
+        if (selected.length === 0) { alert('请至少选择一个标签。'); return; }
+        recreateEditor({ mode: 'custom', tags: selected });
+    });
+
+    // ──────────────────────────────────────────────
+    //  初始化编辑器
+    //
+    //  HURichTextEditor 构造函数接受三个参数：
+    //    第 1 个参数：textarea 元素的 CSS 选择器（编辑器的输入区域）
+    //    第 2 个参数：预览容器的 CSS 选择器（实时渲染 Unity 标签的区域）
+    //    第 3 个参数（可选）：模式配置对象，支持以下三种模式：
+    //
+    //  【基础模式】— 仅显示 6 个基础标签（b, i, u, s, color, size）
+    //    new HURichTextEditor('#myTextarea', '#previewContainer', { mode: 'base' });
+    //
+    //  【高级模式】— 显示全部 35 个 Unity 富文本标签（默认行为）
+    //    new HURichTextEditor('#myTextarea', '#previewContainer');
+    //    new HURichTextEditor('#myTextarea', '#previewContainer', { mode: 'advance' });
+    //
+    //  【自定义模式】— 用户自选需要的标签组合
+    //    new HURichTextEditor('#myTextarea', '#previewContainer', {
+    //        mode: 'custom',
+    //        tags: ['b', 'i', 'u', 'color', 'size', 'align', 'mark']
+    //    });
+    //
+    //  自定义模式还可以通过 tagOverrides 覆盖特定标签的配置：
+    //    new HURichTextEditor('#myTextarea', '#previewContainer', {
+    //        mode: 'custom',
+    //        tags: ['b', 'i', 'color'],
+    //        tagOverrides: { color: { label: '文字颜色' } }
+    //    });
+    //
+    //  【向后兼容】旧版标签覆盖写法仍然有效：
+    //    new HURichTextEditor('#myTextarea', '#previewContainer', { b: { label: '粗体' } });
+    //
+    //  注意：无论工具栏使用哪种模式，预览区域始终能渲染全部 35 个标签。
+    // ──────────────────────────────────────────────
+
+    // 默认使用高级模式初始化编辑器
+    let editor = new HURichTextEditor('#myTextarea', '#previewContainer');
+    let currentMode = 'advance';
+
+    /**
+     * 重建编辑器实例
+     *
+     * 当用户切换编辑模式时调用此函数。流程如下：
+     * 1. 保存当前 textarea 中的文本内容
+     * 2. 销毁当前编辑器实例（移除 DOM 元素和事件监听）
+     * 3. 用新的模式配置创建新的编辑器实例
+     * 4. 恢复之前保存的文本内容并刷新预览
+     * 5. 重新绑定原始输出监听器
+     *
+     * @param {object} modeConfig - 模式配置对象，传入 HURichTextEditor 的第三个参数
+     *   例如：{ mode: 'base' } 或 { mode: 'custom', tags: ['b', 'i', 'color'] }
+     */
+    function recreateEditor(modeConfig) {
+        // 1. 保存当前 textarea 中的文本，避免切换模式后丢失
+        const content = editor.textarea.value;
+        // 2. 销毁当前编辑器实例（清理事件监听、移除工具栏和弹窗 DOM、移除注入样式）
+        editor.destroy();
+        // 3. 使用新的模式配置重新创建编辑器实例
+        editor = new HURichTextEditor('#myTextarea', '#previewContainer', modeConfig);
+        // 4. 恢复之前保存的文本内容，并手动触发预览更新
+        editor.textarea.value = content;
+        editor.updateOutput();
+        // 5. 重新绑定原始输出面板的 input 监听器（因为 destroy 已移除旧监听）
+        editor.textarea.addEventListener('input', () => {
+            const code = document.getElementById('outputCode');
+            if (code && code.classList.contains('visible')) {
+                code.textContent = editor.textarea.value;
+            }
+        });
+    }
+
+    // ──────────────────────────────────────────────
+    //  模式按钮点击处理
+    // ──────────────────────────────────────────────
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    const customPicker = document.getElementById('customPicker');
+
+    modeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mode = btn.dataset.mode;
+            if (mode === currentMode && mode !== 'custom') return;
+
+            // 更新按钮激活状态
+            modeButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // 显示/隐藏自定义标签选择器
+            customPicker.style.display = mode === 'custom' ? 'block' : 'none';
+
+            if (mode === 'base') {
+                currentMode = 'base';
+                recreateEditor({ mode: 'base' });
+            } else if (mode === 'advance') {
+                currentMode = 'advance';
+                recreateEditor({ mode: 'advance' });
+            }
+            // 自定义模式等待用户点击"应用"按钮后再触发
+        });
+    });
+
+    // ──────────────────────────────────────────────
+    //  原始标记显示/隐藏切换
+    // ──────────────────────────────────────────────
+    function toggleOutput() {
+        const code = document.getElementById('outputCode');
+        const arrow = document.getElementById('outputArrow');
+        const isVisible = code.classList.toggle('visible');
+        arrow.innerHTML = isVisible ? '&#9660;' : '&#9654;';
+        if (isVisible) {
+            code.textContent = editor.textarea.value;
+        }
+    }
+
+    // 输入时同步更新原始输出面板（仅在面板可见时）
+    editor.textarea.addEventListener('input', () => {
+        const code = document.getElementById('outputCode');
+        if (code.classList.contains('visible')) {
+            code.textContent = editor.textarea.value;
+        }
+    });
+
+    // ──────────────────────────────────────────────
+    //  标签参考数据（全部 35 个 Unity 富文本标签）
+    //
+    //  每个分类包含：id（CSS 类标识）、name（分类名称）、icon（图标）
+    //  每个标签包含：
+    //    tag      — 标签标识符
+    //    name     — 标签名称
+    //    syntax   — 语法示例
+    //    desc     — 功能描述
+    //    sample   — 演示样本（用于"试一试"按钮）
+    //    applyTag — 通过 applyStyle API 应用的标签名（可选）
+    //    applyVal — 传给 applyStyle 的参数值（可选）
+    // ──────────────────────────────────────────────
+    const TAG_REFERENCE = [
+        {
+            id: 'basic',
+            name: '基础格式',
+            icon: 'B',
+            tags: [
+                { tag: 'b',     name: 'b',     syntax: '<b>文本</b>',           desc: '加粗',                 sample: '<b>加粗文本</b>' },
+                { tag: 'i',     name: 'i',     syntax: '<i>文本</i>',           desc: '斜体',                 sample: '<i>斜体文本</i>' },
+                { tag: 'u',     name: 'u',     syntax: '<u>文本</u>',           desc: '下划线',               sample: '<u>下划线文本</u>' },
+                { tag: 's',     name: 's',     syntax: '<s>文本</s>',           desc: '删除线',               sample: '<s>删除线文本</s>' },
+            ]
+        },
+        {
+            id: 'transform',
+            name: '文本变换',
+            icon: 'Aa',
+            tags: [
+                { tag: 'allcaps',   name: 'allcaps',   syntax: '<allcaps>文本</allcaps>',       desc: '全部大写',               sample: '<allcaps>全部大写文本</allcaps>' },
+                { tag: 'uppercase', name: 'uppercase', syntax: '<uppercase>文本</uppercase>',   desc: '转大写（别名）',         sample: '<uppercase>大写文本</uppercase>' },
+                { tag: 'lowercase', name: 'lowercase', syntax: '<lowercase>文本</lowercase>',   desc: '全部小写',               sample: '<lowercase>小写文本</lowercase>' },
+                { tag: 'smallcaps', name: 'smallcaps', syntax: '<smallcaps>文本</smallcaps>',   desc: '小型大写',               sample: '<smallcaps>Small Caps Text</smallcaps>' },
+                { tag: 'sub',       name: 'sub',       syntax: '<sub>文本</sub>',               desc: '下标',                   sample: 'H<sub>2</sub>O' },
+                { tag: 'sup',       name: 'sup',       syntax: '<sup>文本</sup>',               desc: '上标',                   sample: 'E=mc<sup>2</sup>' },
+            ]
+        },
+        {
+            id: 'font',
+            name: '字体与字号',
+            icon: 'A',
+            tags: [
+                { tag: 'font',        name: 'font',        syntax: '<font="名称">文本</font>',          desc: '字体',               sample: '<font="Georgia">Georgia 字体</font>',        applyTag: 'font',        applyVal: 'Georgia' },
+                { tag: 'font-weight', name: 'font-weight', syntax: '<font-weight="700">文本</font-weight>', desc: '字重',          sample: '<font-weight="700">粗体字重</font-weight>', applyTag: 'font-weight', applyVal: '700' },
+                { tag: 'size',        name: 'size',        syntax: '<size=24>文本</size>',              desc: '字号',               sample: '<size=24>大号文本</size>',                  applyTag: 'size',        applyVal: '24' },
+            ]
+        },
+        {
+            id: 'spacing',
+            name: '间距与布局',
+            icon: '↔',
+            tags: [
+                { tag: 'align',       name: 'align',       syntax: '<align="center">文本</align>',         desc: '文本对齐',           sample: '<align="center">居中文本</align>',       applyTag: 'align',       applyVal: 'center' },
+                { tag: 'cspace',      name: 'cspace',      syntax: '<cspace=0.1em>文本</cspace>',          desc: '字间距',             sample: '<cspace=0.2em>加大间距</cspace>',            applyTag: 'cspace',      applyVal: '0.2em' },
+                { tag: 'mspace',      name: 'mspace',      syntax: '<mspace=2.75em>文本</mspace>',         desc: '等宽宽度',           sample: '<mspace=2.75em>等宽文本</mspace>',                applyTag: 'mspace',      applyVal: '2.75em' },
+                { tag: 'indent',      name: 'indent',      syntax: '<indent=15%>文本</indent>',            desc: '段落缩进',           sample: '<indent=15%>缩进段落</indent>',     applyTag: 'indent',      applyVal: '15%' },
+                { tag: 'line-height', name: 'line-height', syntax: '<line-height=150%>文本</line-height>', desc: '行高',               sample: '<line-height=150%>高行距</line-height>',   applyTag: 'line-height', applyVal: '150%' },
+                { tag: 'line-indent', name: 'line-indent', syntax: '<line-indent=10%>文本</line-indent>',  desc: '首行缩进',           sample: '<line-indent=10%>首行缩进</line-indent>',    applyTag: 'line-indent', applyVal: '10%' },
+                { tag: 'margin',      name: 'margin',      syntax: '<margin=5em>文本</margin>',            desc: '左右外边距',         sample: '<margin=5em>带外边距文本</margin>',           applyTag: 'margin',      applyVal: '5em' },
+                { tag: 'voffset',     name: 'voffset',     syntax: '<voffset=0.5em>文本</voffset>',        desc: '垂直偏移',           sample: '<voffset=0.5em>上移文本</voffset>',             applyTag: 'voffset',     applyVal: '0.5em' },
+                { tag: 'width',       name: 'width',       syntax: '<width=60%>文本</width>',              desc: '块宽度',             sample: '<width=60%>窄块文本</width>',             applyTag: 'width',       applyVal: '60%' },
+            ]
+        },
+        {
+            id: 'color',
+            name: '颜色与效果',
+            icon: '🎨',
+            tags: [
+                { tag: 'color',    name: 'color',    syntax: '<color=#FF0000>文本</color>',         desc: '文字颜色',             sample: '<color=#FF5500>橙色文本</color>',    applyTag: 'color',    applyVal: '#FF5500' },
+                { tag: 'alpha',    name: 'alpha',    syntax: '<alpha=#80>文本</alpha>',             desc: '透明度',               sample: '<alpha=#80>半透明文本</alpha>',   applyTag: 'alpha',    applyVal: '80' },
+                { tag: 'mark',     name: 'mark',     syntax: '<mark=#FFFF00AA>文本</mark>',         desc: '高亮标记',             sample: '<mark=#FFFF00AA>高亮文本</mark>',    applyTag: 'mark',     applyVal: '#FFFF00AA' },
+                { tag: 'gradient', name: 'gradient', syntax: '<gradient="名称">文本</gradient>',    desc: '渐变预设',             sample: '<gradient="Sunset">渐变文本</gradient>', applyTag: 'gradient', applyVal: 'Sunset' },
+                { tag: 'style',    name: 'style',    syntax: '<style="H1">文本</style>',            desc: '样式类',               sample: '<style="H1">标题样式</style>',   applyTag: 'style',    applyVal: 'H1' },
+            ]
+        },
+        {
+            id: 'links',
+            name: '链接与媒体',
+            icon: '🔗',
+            tags: [
+                { tag: 'a',      name: 'a',      syntax: '<a href="网址">文本</a>',              desc: '网页链接',             sample: '<a href="https://unity.com">Unity 官网</a>',  applyTag: 'a',      applyVal: 'https://unity.com' },
+                { tag: 'link',   name: 'link',   syntax: '<link="id">文本</link>',              desc: '链接 ID（游戏事件）',   sample: '<link="shop">打开商店</link>',           applyTag: 'link',   applyVal: 'shop' },
+                { tag: 'sprite', name: 'sprite', syntax: '<sprite name="资源名">',               desc: '内联精灵/图片',         sample: '<sprite name="coin">',                   applyTag: 'sprite', applyVal: 'coin' },
+            ]
+        },
+        {
+            id: 'special',
+            name: '特殊标签',
+            icon: '⚙',
+            tags: [
+                { tag: 'br',      name: 'br',      syntax: '<br>',                       desc: '换行',                 sample: '<br>',                            applyTag: 'br' },
+                { tag: 'space',   name: 'space',   syntax: '<space=5em>',                desc: '水平间距',             sample: '<space=5em>',                     applyTag: 'space',  applyVal: '5em' },
+                { tag: 'pos',     name: 'pos',     syntax: '<pos=75%>',                  desc: '绝对光标位置',         sample: '<pos=75%>',                       applyTag: 'pos',    applyVal: '75%' },
+                { tag: 'nobr',    name: 'nobr',    syntax: '<nobr>文本</nobr>',           desc: '禁止换行',             sample: '<nobr>不换行文本</nobr>' },
+                { tag: 'noparse', name: 'noparse', syntax: '<noparse>文本</noparse>',     desc: '禁用富文本解析',       sample: '<noparse><b>原始标签</b></noparse>' },
+            ]
+        },
+    ];
+
+    // ──────────────────────────────────────────────
+    //  构建标签参考区域的 UI
+    // ──────────────────────────────────────────────
+    function buildTagReference() {
+        const container = document.getElementById('tagCategories');
+        container.innerHTML = '';
+
+        TAG_REFERENCE.forEach((cat, ci) => {
+            const catEl = document.createElement('div');
+            catEl.className = `tag-category cat-${cat.id}` + (ci === 0 ? ' open' : '');
+
+            // 分类头部
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            header.innerHTML = `
+                <div class="category-header-left">
+                    <div class="category-icon">${cat.icon}</div>
+                    <span class="category-name">${cat.name}</span>
+                    <span class="category-count">${cat.tags.length}</span>
+                </div>
+                <span class="category-chevron">&#9654;</span>
+            `;
+            header.addEventListener('click', () => {
+                catEl.classList.toggle('open');
+            });
+            catEl.appendChild(header);
+
+            // 分类内容区
+            const body = document.createElement('div');
+            body.className = 'category-body';
+
+            cat.tags.forEach(tagDef => {
+                const row = document.createElement('div');
+                row.className = 'tag-row';
+
+                // 图标单元格
+                const iconCell = document.createElement('div');
+                iconCell.className = 'tag-icon-cell';
+                iconCell.textContent = tagDef.name.charAt(0).toUpperCase();
+
+                // 标签名称
+                const nameCell = document.createElement('div');
+                nameCell.className = 'tag-name-cell';
+                nameCell.textContent = tagDef.name;
+
+                // 语法示例
+                const syntaxCell = document.createElement('div');
+                syntaxCell.className = 'tag-syntax-cell';
+                syntaxCell.textContent = tagDef.syntax;
+
+                // 功能描述
+                const descCell = document.createElement('div');
+                descCell.className = 'tag-desc-cell';
+                descCell.textContent = tagDef.desc;
+
+                // "试一试"按钮
+                const tryBtn = document.createElement('button');
+                tryBtn.className = 'try-btn';
+                tryBtn.textContent = '试一试';
+                tryBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    insertSample(tagDef);
+                });
+
+                row.appendChild(iconCell);
+                row.appendChild(nameCell);
+                row.appendChild(syntaxCell);
+                row.appendChild(descCell);
+                row.appendChild(tryBtn);
+                body.appendChild(row);
+            });
+
+            catEl.appendChild(body);
+            container.appendChild(catEl);
+        });
+    }
+
+    // ──────────────────────────────────────────────
+    //  "试一试"功能 — 将标签示例插入编辑器
+    //
+    //  对于有 applyTag 的标签，调用编辑器的 applyStyle API，
+    //  它会自动处理选区包裹和占位符插入。
+    //  对于没有 applyTag 的切换型/自闭合标签，直接在光标位置插入示例文本。
+    // ──────────────────────────────────────────────
+    function insertSample(tagDef) {
+        const ta = editor.textarea;
+        ta.focus();
+
+        // 有 applyTag 的标签：通过编辑器的 applyStyle 公开 API 应用
+        if (tagDef.applyTag && tagDef.applyVal) {
+            // applyStyle 会自动处理两种情况：
+            //   - 有选区时：用标签包裹选中的文本
+            //   - 无选区时：插入带占位符的标签
+            editor.applyStyle(tagDef.applyTag, tagDef.applyVal);
+            return;
+        }
+
+        // 没有 applyTag 的切换型/自闭合标签：直接在光标位置插入示例文本
+        const sample = tagDef.sample;
+        if (sample) {
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            const before = ta.value.substring(0, start);
+            const after = ta.value.substring(end);
+            // 如果插入的是块级内容，在前后添加换行
+            const needsNewlineBefore = before.length > 0 && !before.endsWith('\n') && !before.endsWith(' ');
+            const prefix = needsNewlineBefore ? '\n' : '';
+            ta.value = before + prefix + sample + after;
+            const newPos = start + prefix.length + sample.length;
+            ta.setSelectionRange(newPos, newPos);
+            editor.updateOutput();
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    //  全部展开 / 全部折叠
+    // ──────────────────────────────────────────────
+    let allExpanded = false;
+    function toggleAllCategories() {
+        allExpanded = !allExpanded;
+        const cats = document.querySelectorAll('.tag-category');
+        cats.forEach(c => {
+            if (allExpanded) c.classList.add('open');
+            else c.classList.remove('open');
+        });
+        document.getElementById('expandAllBtn').textContent = allExpanded ? '全部折叠' : '全部展开';
+    }
+
+    // ── 页面初始化 ──
+    buildTagReference();
+    </script>
 </body>
-<script src="../html.unity.richtext.js"></script>   
-<script>  
-    const editor = new HURichTextEditor('#myTextarea','#previewContainer');  
-</script>  
 </html>
