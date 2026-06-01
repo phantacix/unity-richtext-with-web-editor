@@ -303,7 +303,7 @@ open demo/demo.html
 
 ---
 
-# HTML-Unity-RichText
+# Unity Rich Text With Web Editor
 
 A lightweight, zero-dependency rich text editor that bridges HTML formatting with Unity-style markup syntax. Supports all **35 Unity rich text tags** with visual controls, live preview, and XSS protection.
 
