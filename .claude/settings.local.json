@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.unity3d.com)",
+      "Bash(node -c html.unity.richtext.js)",
+      "Bash(node -e ' *)",
+      "Bash(node test_runner.js)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'feat: complete editor rewrite with all 35 Unity rich text tags and visual controls *)",
+      "Bash(grep *)",
+      "Bash(git commit -m 'Enhance demo page and README with full 35-tag documentation *)",
+      "Bash(git commit -m 'fix: minor demo/README fixes \\(GitHub URL, size value, double separator\\) *)",
+      "Bash(node *)",
+      "Bash(git commit -m 'feat: add destroy\\(\\), accessibility, tooltips, debouncing, and CSS polish *)",
+      "Bash(git commit -m 'fix: render initial preview content on editor load *)",
+      "Bash(git commit -m 'style: switch editor and demo from dark theme to light theme *)",
+      "Bash(git commit -m 'feat: add Base/Advance/Custom three-mode system *)",
+      "Bash(git commit -m 'feat: localize editor UI and demo page to Chinese \\(中文\\) *)",
+      "Bash(git commit -m 'chore: 将 html.unity.richtext.js 所有注释改为中文 *)",
+      "Bash(git commit -m 'chore: 将 demo.html 所有注释改为中文，并补充编辑器构造的详细中文注释 *)",
+      "Bash(npm ls *)",
+      "Bash(which playwright *)",
+      "Bash(npx --yes playwright --version)",
+      "Bash(npx --yes puppeteer --version)",
+      "Bash(cp demo_new.png demo.gif)",
+      "Bash(cp demo2_new.png demo2.png)",
+      "Bash(rm demo_new.png demo2_new.png)"
+    ]
+  }
+}
